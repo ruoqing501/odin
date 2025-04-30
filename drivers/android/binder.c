@@ -812,6 +812,7 @@ static void binder_transaction_priority(struct binder_thread *thread,
 {
 	struct task_struct *task = thread->task;
 	struct binder_priority desired = t->priority;
+	bool skip = false;
 	const struct binder_priority node_prio = {
 		.sched_policy = node->sched_policy,
 		.prio = node->min_priority,
@@ -821,6 +822,10 @@ static void binder_transaction_priority(struct binder_thread *thread,
 		return;
 
 	t->set_priority_called = true;
+
+	trace_android_vh_binder_priority_skip(task, &skip);
+	if (skip)
+		return;
 
 	if (!node->inherit_rt && is_rt_policy(desired.sched_policy)) {
 		desired.prio = NICE_TO_PRIO(0);

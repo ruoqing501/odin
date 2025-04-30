@@ -119,6 +119,7 @@ source "drivers/staging/kpc2000/Kconfig"
 source "drivers/staging/isdn/Kconfig"
 
 source "drivers/staging/wusbcore/Kconfig"
+
 source "drivers/staging/uwb/Kconfig"
 
 source "drivers/staging/qlge/Kconfig"
@@ -130,5 +131,7 @@ source "drivers/staging/cam-reclaim/Kconfig"
 source "drivers/staging/mi-reclaim/Kconfig"
 
 source "drivers/staging/mi-log/Kconfig"
+
+source "drivers/staging/binder_prio/Kconfig"
 
 endif # STAGING

@@ -81,3 +81,4 @@ EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_binder_preset);
 EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_binder_wait_for_work);
 EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_do_send_sig_info);
 EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_binder_proc_transaction);
+EXPORT_TRACEPOINT_SYMBOL_GPL(android_vh_binder_priority_skip);
