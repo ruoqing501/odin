@@ -48,6 +48,10 @@
 #include "throne_tracker.h"
 #include "kernel_compat.h"
 
+#ifdef CONFIG_KPM
+#include "kpm/kpm.h"
+#endif
+
 #ifdef CONFIG_KSU_SUSFS
 bool susfs_is_allow_su(void)
 {

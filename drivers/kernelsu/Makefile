@@ -22,7 +22,7 @@ obj-$(CONFIG_KSU) += kernelsu.o
 
 obj-y += kpm/
 
-ccflags-y += -DKSU_VERSION=12830
+ccflags-y += -DKSU_VERSION=12845
 
 ifndef KSU_EXPECTED_SIZE
 KSU_EXPECTED_SIZE := 0x35c
