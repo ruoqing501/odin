@@ -47,6 +47,11 @@ DECLARE_HOOK(android_vh_binder_preset,
 DECLARE_HOOK(android_vh_binder_wait_for_work,
 	TP_PROTO(bool do_proc_work, struct binder_thread *tsk, struct binder_proc *proc),
 	TP_ARGS(do_proc_work, tsk, proc));
+DECLARE_HOOK(android_vh_binder_proc_transaction,
+	TP_PROTO(struct task_struct *caller_task, struct task_struct *binder_proc_task,
+		struct task_struct *binder_th_task, int node_debug_id,
+		unsigned int code, bool pending_async),
+	TP_ARGS(caller_task, binder_proc_task, binder_th_task, node_debug_id, code, pending_async));
 
 /* macro versions of hooks are no longer required */
 

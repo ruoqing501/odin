@@ -129,4 +129,6 @@ source "drivers/staging/cam-reclaim/Kconfig"
 
 source "drivers/staging/mi-reclaim/Kconfig"
 
+source "drivers/staging/mi-log/Kconfig"
+
 endif # STAGING
