@@ -27,6 +27,7 @@ GCC64_DIR="${KERNEL_DIR}/scripts/aarch64-linux-android-4.9"
 GCC_DIR="${KERNEL_DIR}/scripts/arm-linux-androideabi-4.9"
 ANYKERNEL_DIR="${KERNEL_DIR}/scripts/AnyKernel3"
 IMAGE_DIR="${KERNEL_DIR}/out/arch/arm64/boot/Image"
+VERSION_DIR="${KERNEL_DIR}/out/include/generated/utsrelease.h"
 MODULES_DIR="${ANYKERNEL_DIR}/modules/vendor/lib/modules"
 ROOT_DIR="${KERNEL_DIR}/drivers"
 KSU_DIR="${KERNEL_DIR}/scripts/root/Kernelsu"
@@ -41,12 +42,13 @@ cd "${KERNEL_DIR}"
 DEFCONFIG="odin_defconfig"
 
 # 文件名称
+VERSION=$(grep "#define UTS_RELEASE" "$VERSION_DIR" | cut -d '"' -f2 | cut -d '-' -f1)
 if [ -d ".git" ]; then
 GIT_COMMIT_HASH=$(git rev-parse --short=7 HEAD)
-ZIP_NAME="MIX4-5.4.281-g${GIT_COMMIT_HASH}.zip"
+ZIP_NAME="MIX4-$VERSION-g${GIT_COMMIT_HASH}.zip"
 else
 CURRENT_TIME=$(date '+%Y-%m%d%H%M')
-ZIP_NAME="MIX4-5.4.281-${CURRENT_TIME}.zip"
+ZIP_NAME="MIX4-$VERSION-${CURRENT_TIME}.zip"
 fi
 
 # 安装依赖
@@ -131,18 +133,22 @@ root() {
     
 # 编译内核
 build() {
-    make ${args} "${DEFCONFIG}"
+    make ${args} $DEFCONFIG
     make ${args} menuconfig
     make ${args} savedefconfig
-    cp out/defconfig arch/arm64/configs/"${DEFCONFIG}"
-#   cp out/.config arch/arm64/configs/"${DEFCONFIG}"
+    cp out/defconfig arch/arm64/configs/$DEFCONFIG
+#   cp out/.config arch/arm64/configs/$DEFCONFIG
     START_TIME=$(date +%s)
-    make ${args} 2>&1 | tee "${CURRENT_DIR}/kernel.log"
+    if ! make ${args} 2>&1 | tee "${CURRENT_DIR}/kernel.log"; then
+    echo -e "${YELLOW}--------------------------------------------------${NC}"
+    echo -e "${RED}编译失败，请检查代码后重试...${NC}"
+    echo -e "${YELLOW}--------------------------------------------------${NC}"
+    exit 1
+    fi
 }
 
 # 打包内核
 package() {
-    if [ -f "$IMAGE_DIR" ]; then
     cd "${ANYKERNEL_DIR}"
     cp "${IMAGE_DIR}" "${ANYKERNEL_DIR}/Image"
     if grep -q '=m' "${KERNEL_DIR}/out/.config"; then
@@ -171,12 +177,6 @@ package() {
     echo -e "${YELLOW}--------------------------------------------------${NC}"
     echo -e "${YELLOW}内核文件: ${CURRENT_DIR}/${ZIP_NAME}${NC}"
     echo -e "${YELLOW}--------------------------------------------------${NC}"
-    else
-    echo -e "${YELLOW}--------------------------------------------------${NC}"
-    echo -e "${RED}编译失败，请检查代码后重试...${NC}"
-    echo -e "${YELLOW}--------------------------------------------------${NC}"
-    exit 1
-    fi
 }
 
 # 清理环境
