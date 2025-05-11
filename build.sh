@@ -27,7 +27,6 @@ GCC64_DIR="${KERNEL_DIR}/scripts/aarch64-linux-android-4.9"
 GCC_DIR="${KERNEL_DIR}/scripts/arm-linux-androideabi-4.9"
 ANYKERNEL_DIR="${KERNEL_DIR}/scripts/AnyKernel3"
 IMAGE_DIR="${KERNEL_DIR}/out/arch/arm64/boot/Image"
-VERSION_DIR="${KERNEL_DIR}/out/include/generated/utsrelease.h"
 MODULES_DIR="${ANYKERNEL_DIR}/modules/vendor/lib/modules"
 ROOT_DIR="${KERNEL_DIR}/drivers"
 KSU_DIR="${KERNEL_DIR}/scripts/root/Kernelsu"
@@ -42,13 +41,12 @@ cd "${KERNEL_DIR}"
 DEFCONFIG="odin_defconfig"
 
 # 文件名称
-VERSION=$(grep "#define UTS_RELEASE" "$VERSION_DIR" | cut -d '"' -f2 | cut -d '-' -f1)
 if [ -d ".git" ]; then
 GIT_COMMIT_HASH=$(git rev-parse --short=7 HEAD)
-ZIP_NAME="MIX4-$VERSION-g${GIT_COMMIT_HASH}.zip"
+ZIP_NAME="MIX4-5.4.289-g${GIT_COMMIT_HASH}.zip"
 else
 CURRENT_TIME=$(date '+%Y-%m%d%H%M')
-ZIP_NAME="MIX4-$VERSION-${CURRENT_TIME}.zip"
+ZIP_NAME="MIX4-5.4.289-${CURRENT_TIME}.zip"
 fi
 
 # 安装依赖
