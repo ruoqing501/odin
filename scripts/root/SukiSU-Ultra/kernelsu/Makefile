@@ -22,7 +22,7 @@ obj-$(CONFIG_KSU) += kernelsu.o
 
 obj-y += kpm/
 
-ccflags-y += -DKSU_VERSION=12850
+ccflags-y += -DKSU_VERSION=12905
 
 ifndef KSU_EXPECTED_SIZE
 KSU_EXPECTED_SIZE := 0x35c
@@ -41,13 +41,11 @@ $(info -- SukiSU Manager signature size: $(KSU_EXPECTED_SIZE))
 $(info -- SukiSU Manager signature hash: $(KSU_EXPECTED_HASH))
 $(info -- Supported Unofficial Manager: 5ec1cff (GKI) rsuntk (Non-GKI) ShirkNeko udochina (GKI and non-GKI and KPM))
 
-ifeq ($(strip $(CONFIG_KSU_HOOK_KPROBES)),y)
-$(info -- SukiSU: KPROBES hooking enabled!)
-else
+ifeq ($(strip $(CONFIG_KSU_MANUAL_HOOK)),y)
 $(info -- SukiSU: Manual hooking enabled!)
-ifeq ($(strip $(CONFIG_KSU)),m)
-$(error CONFIG_KSU_MANUAL_HOOK cannot be enabled when compiling SukiSU as LKM!)
-endif
+else
+$(info -- SukiSU: KPROBES hooking enabled!)
+ccflags-y += -DCONFIG_KSU_KPROBES_HOOK
 endif
 
 KERNEL_VERSION := $(VERSION).$(PATCHLEVEL)
@@ -70,16 +68,6 @@ $(info -- KPM is enabled)
 else
 $(info -- KPM is disabled)
 endif
-
-# 检查原子函数
-ifeq ($(shell grep -q "atomic_inc_not_zero" $(srctree)/kernel/cred.c; echo $$?),0)
-ATOMIC_INC_FUNC = atomic_inc_not_zero
-else ifeq ($(shell grep -q "atomic_long_inc_not_zero" $(srctree)/kernel/cred.c; echo $$?),0)
-ATOMIC_INC_FUNC = atomic_long_inc_not_zero
-else
-$(info -- SukiSU compat: Neither atomic_inc_not_zero nor atomic_long_inc_not_zero found in kernel/cred.c)
-endif
-$(info -- SukiSU compat: Using $(ATOMIC_INC_FUNC) in get_cred_rcu patch.)
 
 # 写入签名
 ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
@@ -125,27 +113,6 @@ ccflags-y += -DSAMSUNG_UH_DRIVER_EXIST
 endif
 
 ccflags-y += -DKSU_UMOUNT
-ccflags-y += -DKSU_COMPAT_GET_CRED_RCU
-
-# Add the get_cred_rcu function to cred.h if not already present
-ifneq ($(shell grep -Eq "^static inline const struct cred \*get_cred_rcu" $(srctree)/include/linux/cred.h; echo $$?),0)
-$(info -- SukiSU compat: adding function 'static inline const struct cred *get_cred_rcu(const struct cred *cred);' to $(srctree)/include/linux/cred.h)
-GET_CRED_RCU = static inline const struct cred *get_cred_rcu(const struct cred *cred)\n\
-{\n\t\
-        struct cred *nonconst_cred = (struct cred *) cred;\n\t\
-        if (!cred)\n\t\t\
-                return NULL;\n\t\
-        if (!$(ATOMIC_INC_FUNC)(&nonconst_cred->usage))\n\t\t\
-                return NULL;\n\t\
-        validate_creds(cred);\n\t\
-        return cred;\n\
-}\n
-$(shell grep -qF "$(GET_CRED_RCU)" $(srctree)/include/linux/cred.h || sed -i '/^static inline void put_cred/i $(GET_CRED_RCU)' $(srctree)/include/linux/cred.h)
-
-# Modify get_task_cred in cred.c
-$(info -- SukiSU compat: modifying 'get_task_cred' function in $(srctree)/kernel/cred.c)
-$(shell sed -i "s/!$(ATOMIC_INC_FUNC)(&((struct cred \*)cred)->usage)/!get_cred_rcu(cred)/g" $(srctree)/kernel/cred.c)
-endif
 
 ifneq ($(shell grep -Eq "^static int can_umount" $(srctree)/fs/namespace.c; echo $$?),0)
 $(info -- SukiSU compat: adding function 'static int can_umount(const struct path *path, int flags);' to $(srctree)/fs/namespace.c)
@@ -166,6 +133,7 @@ CAN_UMOUNT = static int can_umount(const struct path *path, int flags)\n\
                 return -EPERM;\n\t\
         return 0;\n\
 }\n
+
 $(shell sed -i '/^static bool is_mnt_ns_file/i $(CAN_UMOUNT)' $(srctree)/fs/namespace.c;)
 endif
 
