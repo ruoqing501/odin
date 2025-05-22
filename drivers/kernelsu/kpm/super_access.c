@@ -171,7 +171,9 @@ DYNAMIC_STRUCT_BEGIN(task_struct)
     DEFINE_MEMBER(task_struct, group_leader)
     DEFINE_MEMBER(task_struct, mm)
     DEFINE_MEMBER(task_struct, active_mm)
-#if LINUX_VERSION_CODE > KERNEL_VERSION_4_10
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0) 
+    DEFINE_MEMBER(task_struct, pids[PIDTYPE_PID].pid)
+#else
     DEFINE_MEMBER(task_struct, thread_pid)
 #endif
     DEFINE_MEMBER(task_struct, files)
