@@ -97,12 +97,16 @@ static int enable_regulator_3V0(struct device *dev, struct regulator **pp_vreg)
 	} else {
 		dev_err(dev, "fp %s: of vreg successful found\n", __func__);
 	}
-/*	rc = regulator_set_voltage(vreg, 3000000, 3000000);
+
+/*Skip voltage set as it has been set in dts*/
+#if 0
+	rc = regulator_set_voltage(vreg, 3000000, 3000000);
 
 	if (rc) {
 		return rc;
 	}
-*/
+#endif
+
 	rc = regulator_set_load(vreg, 200000);
 
 	if (rc) {
@@ -479,6 +483,11 @@ static long gf_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 	case GF_IOC_RESET:
 		pr_debug("%s GF_IOC_RESET.\n", __func__);
 		gf_hw_reset(gf_dev, 3);
+		if (gf_dev->pinctrl && gf_dev->gf_default_state) {
+			if (pinctrl_select_state(gf_dev->pinctrl, gf_dev->gf_default_state) < 0) {
+				pr_err("Set gf default state error\n");
+			}
+		}
 		break;
 
 	case GF_IOC_INPUT_KEY_EVENT:
@@ -634,7 +643,9 @@ static int gf_open(struct inode *inode, struct file *filp)
 	int status = -ENXIO;
 	int rc = 0;
 	int err = 0;
-	mutex_lock(&device_list_lock);
+	err = mutex_lock_interruptible(&device_list_lock);
+	if (err)
+		return err;
 	list_for_each_entry(gf_dev, &device_list, device_entry) {
 		if (gf_dev->devt == inode->i_rdev) {
 			pr_debug("Found\n");
@@ -718,6 +729,7 @@ static int gf_open(struct inode *inode, struct file *filp)
 			gf_dev->irq_enabled = 1;
 			gf_disable_irq(gf_dev);
 		} else {
+			mutex_unlock(&device_list_lock);
 			err = -EPERM;
 			goto open_error3;
 		}
@@ -756,7 +768,13 @@ static int gf_release(struct inode *inode, struct file *filp)
 	struct gf_dev *gf_dev;
 	int status = 0;
 	pr_debug("%s\n", __func__);
-	mutex_lock(&device_list_lock);
+	if (mutex_is_locked(&device_list_lock)) {
+		pr_info("%s unlock\n", __func__);
+		mutex_unlock(&device_list_lock);
+	}
+	status = mutex_lock_interruptible(&device_list_lock);
+	if (status)
+		return status;
 	gf_dev = filp->private_data;
 	filp->private_data = NULL;
 	/*
