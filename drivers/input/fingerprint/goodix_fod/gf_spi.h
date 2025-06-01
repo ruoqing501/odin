@@ -145,6 +145,8 @@ struct gf_dev {
 #ifdef CONFIG_FINGERPRINT_FP_VREG_CONTROL
 	struct regulator *vreg;
 #endif
+	struct pinctrl *pinctrl;
+	struct pinctrl_state *gf_default_state;
 };
 
 int gf_parse_dts(struct gf_dev *gf_dev);
