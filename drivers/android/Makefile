@@ -7,4 +7,3 @@ obj-$(CONFIG_ANDROID_BINDER_IPC_SELFTEST) += binder_alloc_selftest.o
 obj-$(CONFIG_ANDROID_VENDOR_HOOKS)        += vendor_hooks.o
 obj-y                                     += hwui_mon.o
 obj-y                                     += jank_detect.o
-obj-$(CONFIG_FEAS)	                  += perfmgr.o
