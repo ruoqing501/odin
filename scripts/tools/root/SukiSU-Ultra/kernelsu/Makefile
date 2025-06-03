@@ -22,7 +22,7 @@ obj-$(CONFIG_KSU) += kernelsu.o
 
 obj-y += kpm/
 
-ccflags-y += -DKSU_VERSION=12960
+ccflags-y += -DKSU_VERSION=13000
 
 ifndef KSU_EXPECTED_SIZE
 KSU_EXPECTED_SIZE := 0x35c
@@ -86,10 +86,10 @@ endif
 ifeq ($(shell grep -q "get_cred_rcu" $(srctree)/include/linux/cred.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_GET_CRED_RCU
 else
-ifeq ($(shell grep -q "atomic_long_t\s\+\usage" $(srctree)/include/linux/cred.h; echo $$?),0)
+ifeq ($(shell grep -q "atomic_long_t\s\+usage" $(srctree)/include/linux/cred.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_ATOMIC_LONG
 endif
-ifeq ($(shell grep -q "int\s\+\non_rcu" $(srctree)/include/linux/cred.h; echo $$?),0)
+ifeq ($(shell grep -q "int\s\+non_rcu" $(srctree)/include/linux/cred.h; echo $$?),0)
 ccflags-y += -DKSU_COMPAT_HAS_NONCONST_CRED
 endif
 endif
@@ -115,7 +115,7 @@ endif
 #ccflags-y += -DKSU_UMOUNT
 
 # Do checks before compile
-ifeq ($(shell grep -q "int\s\+\path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
+ifeq ($(shell grep -q "int\s\+path_umount" $(srctree)/fs/namespace.c; echo $$?),0)
 ccflags-y += -DKSU_HAS_PATH_UMOUNT
 endif
 

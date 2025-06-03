@@ -30,6 +30,7 @@ static struct apk_sign_key {
 } apk_sign_keys[] = {
 	{EXPECTED_SIZE, EXPECTED_HASH},
 	{EXPECTED_SIZE_SHIRKNEKO, EXPECTED_HASH_SHIRKNEKO}, // SukiSU
+	{EXPECTED_SIZE_ZAKO, EXPECTED_HASH_ZAKO}, // ZakoSU
 	{EXPECTED_SIZE_RSUNTK, EXPECTED_HASH_RSUNTK}, // RKSU
 	{EXPECTED_SIZE_NEKO, EXPECTED_HASH_NEKO}, // Neko/KernelSU
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0)
@@ -331,7 +332,30 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
 #endif
 
 
-bool ksu_is_manager_apk(char *path)
-{
+#define MANAGERPKG_WLSIZE 3
+static const char *manager_package_whitelist[] = {
+	"zako.zako.zako",
+	"com.sukisu.ultra",
+	"me.weishu.kernelsu"
+};
+
+bool ksu_is_package_whitelisted(char *package) {
+	int i;
+	for (i = 0; i < MANAGERPKG_WLSIZE; i ++) {
+		const char* expected = manager_package_whitelist[i];
+		if (strcmp(expected, package) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool ksu_is_manager_apk(char *path, char *package) {
+	if (!ksu_is_package_whitelisted(package)) {
+		pr_info("refused to crown %s (not in whitelist)", package);
+		return false;
+	}
+
 	return check_v2_signature(path);
 }

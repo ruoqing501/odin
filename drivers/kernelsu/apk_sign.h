@@ -3,6 +3,8 @@
 
 #include <linux/types.h>
 
-bool ksu_is_manager_apk(char *path);
+bool ksu_is_manager_apk(char *path, char *package);
+
+bool ksu_is_package_whitelisted(char *package);
 
 #endif
