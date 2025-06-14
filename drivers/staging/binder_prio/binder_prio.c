@@ -9,7 +9,7 @@
 #include <linux/string.h>
 
 static const char *com_miui_home = "com.miui.home";
-static const char *com_android_systemui = "ndroid.systemui";
+static const char *com_android_systemui = "android.systemui";
 
 static int to_userspace_prio(int policy, int kernel_priority) {
 	if (fair_policy(policy))
